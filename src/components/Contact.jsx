@@ -1,7 +1,65 @@
+import { useState } from "react"
 import { motion } from "framer-motion"
 import portfolioData from "../data/portfolio"
 
 function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: ""
+  })
+
+  const [status, setStatus] = useState("")
+  const [isSending, setIsSending] = useState(false)
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    setIsSending(true)
+    setStatus("")
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/contact",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(formData)
+        }
+      )
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setStatus("Message sent successfully! ✓")
+
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          message: ""
+        })
+      } else {
+        setStatus(data.message || "Failed to send message.")
+      }
+    } catch (error) {
+      console.error(error)
+      setStatus("Unable to connect to the server. Please try again.")
+    }
+
+    setIsSending(false)
+  }
+
   return (
     <section
       id="contact"
@@ -101,37 +159,13 @@ function Contact() {
 
           {/* Contact Form */}
           <motion.form
-            action="https://formsubmit.co/monishasurpur@gmail.com"
-            method="POST"
+            onSubmit={handleSubmit}
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             className="bg-slate-800 border border-slate-700 rounded-2xl p-8 space-y-5"
           >
-
-            {/* FormSubmit Settings */}
-
-            <input
-              type="hidden"
-              name="_subject"
-              value="New Portfolio Contact Message!"
-            />
-
-            <input
-              type="hidden"
-              name="_template"
-              value="table"
-            />
-
-            {/* Spam protection honeypot */}
-            <input
-              type="text"
-              name="_honey"
-              className="hidden"
-              tabIndex="-1"
-              autoComplete="off"
-            />
 
             {/* Name */}
             <div>
@@ -147,6 +181,8 @@ function Contact() {
                 id="name"
                 name="name"
                 required
+                value={formData.name}
+                onChange={handleChange}
                 placeholder="Enter your name"
                 className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-blue-500 transition"
               />
@@ -166,6 +202,8 @@ function Contact() {
                 id="email"
                 name="email"
                 required
+                value={formData.email}
+                onChange={handleChange}
                 placeholder="Enter your email"
                 className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-blue-500 transition"
               />
@@ -184,6 +222,8 @@ function Contact() {
                 type="tel"
                 id="phone"
                 name="phone"
+                value={formData.phone}
+                onChange={handleChange}
                 placeholder="Enter your phone number"
                 className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-blue-500 transition"
               />
@@ -203,19 +243,35 @@ function Contact() {
                 name="message"
                 required
                 rows="5"
+                value={formData.message}
+                onChange={handleChange}
                 placeholder="Write your message..."
                 className="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-blue-500 transition resize-none"
               />
             </div>
 
+            {/* Status Message */}
+            {status && (
+              <p
+                className={
+                  status.includes("successfully")
+                    ? "text-green-400 text-sm"
+                    : "text-red-400 text-sm"
+                }
+              >
+                {status}
+              </p>
+            )}
+
             {/* Submit Button */}
             <motion.button
               type="submit"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+              disabled={isSending}
+              whileHover={!isSending ? { scale: 1.02 } : {}}
+              whileTap={!isSending ? { scale: 0.98 } : {}}
+              className="w-full py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Send Message →
+              {isSending ? "Sending..." : "Send Message →"}
             </motion.button>
 
           </motion.form>
