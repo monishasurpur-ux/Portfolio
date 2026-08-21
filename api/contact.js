@@ -84,13 +84,15 @@ ${message}
       message: "Message sent successfully!"
     })
 
-  } catch (error) {
+  }catch (error) {
+  console.error("Contact form error:")
+  console.error(error)
+  console.error("Error message:", error.message)
+  console.error("Error code:", error.code)
 
-    console.error("Contact form error:", error)
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to send message."
+  return res.status(500).json({
+    success: false,
+    message: "Failed to send message."
     })
   }
 }
